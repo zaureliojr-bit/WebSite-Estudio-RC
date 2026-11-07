@@ -1,0 +1,20 @@
+{
+  "id": "/studio-admin",
+  "name": "Studio Raquel Cândida — Gestão",
+  "short_name": "Studio RC",
+  "description": "Painel de agendamentos do Studio Raquel Cândida",
+  "start_url": "/#admin",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fffaf8",
+  "theme_color": "#ad1835",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/rc-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
