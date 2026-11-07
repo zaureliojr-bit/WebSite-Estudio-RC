@@ -16,3 +16,9 @@
   for = "/.netlify/functions/*"
   [headers.values]
     Cache-Control = "no-store"
+
+# Navegação direta e atualização nas páginas internas do React
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
