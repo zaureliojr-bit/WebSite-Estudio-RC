@@ -30,3 +30,13 @@
 .studio-presentation .studio-links a,.studio-presentation .studio-links button{display:flex;align-items:center;justify-content:flex-start;width:100%;min-height:48px;padding:13px 16px;margin:0;text-align:left;border:0;border-bottom:1px solid #ecdce2;background:transparent;font-size:13px;}
 .studio-presentation .studio-links button{gap:8px;color:#a71c3c;font-weight:650;}
 .studio-presentation .studio-links a:hover,.studio-presentation .studio-links button:hover{background:#fff0f5;}
+
+/* Studio RC: páginas independentes de apresentação e agendamento */
+.studio-home-address{display:flex;align-items:flex-start;gap:18px;max-width:1040px;margin:32px auto 58px;padding:30px;border:1px solid #eac7d1;background:#fff7f9;border-radius:18px;color:#714454}
+.studio-home-address>svg{flex-shrink:0;color:#ae284e}
+.studio-home-address h2{font-size:22px;margin:0 0 12px}
+.studio-home-address p{line-height:1.65;margin:0 0 9px}
+.studio-home-address small{display:block;line-height:1.6;color:#987083;margin-bottom:16px}
+.studio-home-address a{display:inline-flex;align-items:center;gap:8px;color:#aa1742;font-weight:700}
+.client-brand{cursor:pointer}
+@media(max-width:650px){.studio-home-address{margin:24px 16px 40px;padding:20px}.studio-home-address h2{font-size:19px}}
