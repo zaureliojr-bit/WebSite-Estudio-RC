@@ -8,10 +8,10 @@ function fromBase64Url(base64:string){
  return Uint8Array.from(raw,c=>c.charCodeAt(0));
 }
 export default function PushControl(){
- const[supported,setSupported]=useState(false),[enabled,setEnabled]=useState(false),[busy,setBusy]=useState(false),[notice,setNotice]=useState('');
+ const[serverKey,setServerKey]=useState(''),[supported,setSupported]=useState(false),[enabled,setEnabled]=useState(false),[busy,setBusy]=useState(false),[notice,setNotice]=useState('');
  useEffect(()=>{let alive=true;const capable='serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
  setSupported(capable);
- if(capable){navigator.serviceWorker.ready.then(reg=>reg.pushManager.getSubscription()).then(sub=>{if(alive)setEnabled(!!sub)}).catch(()=>{});call('push-config').then((v:any)=>{if(alive&&v.enabled)setServerKey(v.publicKey)}).catch(()=>{});}
+ if(capable){navigator.serviceWorker.ready.then(reg=>reg.pushManager.getSubscription()).then(sub=>{if(alive)setEnabled(!!sub)}).catch(()=>{});}call('push-config').then((v:any)=>{if(alive&&v.enabled)setServerKey(v.publicKey);else if(alive)setNotice('Servidor de notificações ainda não configurado: cadastre as chaves VAPID na Cloudflare.')}).catch(e=>{if(alive)setNotice(e instanceof Error?e.message:'Não foi possível verificar as configurações push.')});
  return()=>{alive=false}},[]);
  async function enable(){
   setBusy(true);setNotice('');
@@ -40,6 +40,6 @@ export default function PushControl(){
  <div><strong><Bell size={17}/> Alertas no celular</strong><p>{enabled?'Este dispositivo está inscrito para receber novos agendamentos.':'Receba uma notificação quando entrar uma nova reserva.'}</p>
  {!supported&&<small>iPhone: abra o site no Safari, toque em Compartilhar → Adicionar à Tela de Início e abra o aplicativo instalado.</small>}
  {notice&&<small role="status">{notice}</small>}</div>
- <div className="push-actions">{enabled&&<button type="button" className="secondary" disabled={busy} onClick={async()=>{setBusy(true);try{const r=await call('push-test',{}) as {status:string;delivered?:number};setNotice(r.status==='sent'?'Notificação de teste enviada ao serviço push. Confira o celular.':'Teste não entregue: '+r.status)}catch(e){setNotice(e instanceof Error?e.message:'Erro ao testar notificações')}finally{setBusy(false)}}}>Testar aviso</button>}<button type="button" className="secondary" disabled={busy} onClick={enabled?disable:enable}>{enabled?<><BellOff size={16}/> Desativar</>:<><Bell size={16}/> {busy?'Configurando…':'Ativar notificações'}</>}</button></div>
+ <div className="push-actions">{enabled&&<button type="button" className="secondary" disabled={busy} onClick={async()=>{setBusy(true);try{const r=await call('push-test',{}) as {status:string;delivered?:number};setNotice(r.status==='sent'?'Notificação aceita pelo serviço push. Confira o celular.':r.status==='no_devices'?'Nenhum celular inscrito no banco. Desative e ative novamente as notificações.':r.status==='database_not_ready'?'Tabela de dispositivos não encontrada. Execute o SQL de configuração push no Supabase.':'Teste não entregue: '+r.status)}catch(e){setNotice(e instanceof Error?e.message:'Erro ao testar notificações')}finally{setBusy(false)}}}>Testar aviso</button>}<button type="button" className="secondary" disabled={busy} onClick={enabled?disable:enable}>{enabled?<><BellOff size={16}/> Desativar</>:<><Bell size={16}/> {busy?'Configurando…':'Ativar notificações'}</>}</button></div>
  </section>;
 }
