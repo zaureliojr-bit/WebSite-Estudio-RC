@@ -40,6 +40,6 @@ export default function PushControl(){
  <div><strong><Bell size={17}/> Alertas no celular</strong><p>{enabled?'Este dispositivo está inscrito para receber novos agendamentos.':'Receba uma notificação quando entrar uma nova reserva.'}</p>
  {!supported&&<small>iPhone: abra o site no Safari, toque em Compartilhar → Adicionar à Tela de Início e abra o aplicativo instalado.</small>}
  {notice&&<small role="status">{notice}</small>}</div>
- <button type="button" className="secondary" disabled={busy} onClick={enabled?disable:enable}>{enabled?<><BellOff size={16}/> Desativar</>:<><Bell size={16}/> {busy?'Configurando…':'Ativar notificações'}</>}</button>
+ <div className="push-actions">{enabled&&<button type="button" className="secondary" disabled={busy} onClick={async()=>{setBusy(true);try{const r=await call('push-test',{}) as {status:string;delivered?:number};setNotice(r.status==='sent'?'Notificação de teste enviada ao serviço push. Confira o celular.':'Teste não entregue: '+r.status)}catch(e){setNotice(e instanceof Error?e.message:'Erro ao testar notificações')}finally{setBusy(false)}}}>Testar aviso</button>}<button type="button" className="secondary" disabled={busy} onClick={enabled?disable:enable}>{enabled?<><BellOff size={16}/> Desativar</>:<><Bell size={16}/> {busy?'Configurando…':'Ativar notificações'}</>}</button></div>
  </section>;
 }
