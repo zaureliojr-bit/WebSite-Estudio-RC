@@ -40,3 +40,25 @@
 .studio-home-address a{display:inline-flex;align-items:center;gap:8px;color:#aa1742;font-weight:700}
 .client-brand{cursor:pointer}
 @media(max-width:650px){.studio-home-address{margin:24px 16px 40px;padding:20px}.studio-home-address h2{font-size:19px}}
+
+/* Últimos agendamentos, push e diagnóstico de e-mail */
+.push-panel{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 22px;margin:0 0 22px;border-radius:12px;background:#f1f6ef;border:1px solid #dce7d9}
+.push-panel>div{flex:1;min-width:0}
+.push-panel strong{display:flex;align-items:center;gap:8px;font-size:13px;color:#355a40}
+.push-panel p,.push-panel small{display:block;font-size:11px;line-height:1.6;color:#718173;margin-top:5px}
+.push-panel button{flex-shrink:0}
+.recent-bookings{margin-bottom:22px}
+.recent-items{padding:0 20px 14px}
+.recent-items>button{display:flex;width:100%;align-items:center;text-align:left;gap:12px;background:transparent;padding:13px 4px;border-top:1px solid var(--line);color:var(--ink)}
+.recent-items>button:hover{background:#f8faf6}
+.recent-items>button>span:first-child{flex:1;min-width:0}
+.recent-items>button strong{display:block;font-size:12px}
+.recent-items>button small{display:block;font-size:10px;color:#858981;margin-top:4px}
+.recent-items>button .badge{white-space:nowrap}
+.recent-empty{padding:13px 4px;color:#858981;font-size:12px}
+.all-months-filter{display:flex;align-items:center;gap:8px;white-space:nowrap;font-size:11px}
+.all-months-filter input{width:16px;min-height:16px;margin:0}
+.email-notification-detail{padding:16px;border-radius:9px;background:#f4f5f1;margin:14px 0}
+.email-notification-detail strong{font-size:12px}
+.email-notification-detail p{font-size:11px;line-height:1.5;margin:7px 0 12px;overflow-wrap:anywhere}
+@media(max-width:680px){.push-panel{flex-direction:column;align-items:stretch}.push-panel button{width:100%}.recent-items{padding:0 12px 14px}.recent-items>button .badge{font-size:9px}.all-months-filter{width:100%}}
