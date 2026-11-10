@@ -3,12 +3,24 @@ import React,{useEffect,useState} from 'react';
 import {CalendarDays,ChevronLeft,ChevronRight,Check,Copy,Upload,ArrowRight,Clock,ShieldCheck,MessageCircle,MapPin} from 'lucide-react';
 import StudioPresentation from './studio-presentation';
 import {type Service,money,validPhone,dateLabel,rules} from './studio';
+const todayInStudio=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 type PublicData={services:Service[];adjustment:number;times:string[];days:Record<string,boolean>;error?:string};
-export default function ClientPage(){const [page,setPage]=useState(location.pathname==='/agendar'?'booking':location.pathname==='/confirmacao'?'booking':'home'),[date,setDate]=useState('2026-12-01'),[data,setData]=useState<PublicData|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[step,setStep]=useState(1),[serviceId,setService]=useState(''),[time,setTime]=useState(''),[name,setName]=useState(''),[phone,setPhone]=useState(''),[color,setColor]=useState(''),[notes,setNotes]=useState(''),[agreed,setAgreed]=useState(false),[busy,setBusy]=useState(false),[file,setFile]=useState<File|null>(null),[result,setResult]=useState<{id:string;name:string;date:string;time:string;serviceName:string;price:number|null;due:string}|null>(null),[receiptToken,setReceiptToken]=useState(''),[proofSent,setProofSent]=useState(false),[notice,setNotice]=useState('');
+export default function ClientPage(){const [page,setPage]=useState(location.pathname==='/agendar'?'booking':location.pathname==='/confirmacao'?'booking':'home'),[date,setDate]=useState(todayInStudio()),[data,setData]=useState<PublicData|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[step,setStep]=useState(1),[serviceId,setService]=useState(''),[time,setTime]=useState(''),[name,setName]=useState(''),[phone,setPhone]=useState(''),[color,setColor]=useState(''),[notes,setNotes]=useState(''),[agreed,setAgreed]=useState(false),[busy,setBusy]=useState(false),[file,setFile]=useState<File|null>(null),[result,setResult]=useState<{id:string;name:string;date:string;time:string;serviceName:string;price:number|null;due:string}|null>(null),[receiptToken,setReceiptToken]=useState(''),[proofSent,setProofSent]=useState(false),[notice,setNotice]=useState('');
 function navigate(next:'home'|'booking'|'success'){const pathname=next==='home'?'/':next==='booking'?'/agendar':'/confirmacao';history.pushState({},'',pathname);setPage(next==='home'?'home':'booking');window.scrollTo({top:0,behavior:'instant'});} 
 useEffect(()=>{const fn=()=>{setPage(location.pathname==='/'?'home':'booking')};window.addEventListener('popstate',fn);return()=>window.removeEventListener('popstate',fn)},[]);
 async function refresh(d=date){setLoading(true);try{const r=await fetch('/api/availability?date='+d,{cache:'no-store'});const v=await r.json() as PublicData;if(!r.ok)throw new Error(v.error);setData(v);setService(s=>s||v.services[0]?.id||'');setError('')}catch(e){setError(e instanceof Error?e.message:'Não foi possível carregar os horários.')}finally{setLoading(false)}}
 useEffect(()=>{setTime('');refresh(date)},[date]);
+useEffect(()=>{
+ const syncToday=()=>{
+   const now=todayInStudio();
+   setDate(old=>old<now?now:old);
+ };
+ const timer=window.setInterval(syncToday,30000);
+ const visible=()=>{if(document.visibilityState==='visible')syncToday()};
+ document.addEventListener('visibilitychange',visible);
+ return()=>{clearInterval(timer);document.removeEventListener('visibilitychange',visible)};
+},[]);
+
 const month=date.slice(0,7),service=data?.services.find(s=>s.id===serviceId),price=service?.price==null?null:Math.round((service.price+(date.slice(5,7)==='12'&&service.decemberAdjustment!==false?(service.decemberExtra??data?.adjustment??0):0))*100)/100;
 function monthMove(n:number){const d=new Date(month+'-01T12:00:00');d.setMonth(d.getMonth()+n);setDate(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01')}
 async function copyPix(){try{await navigator.clipboard.writeText('11910326254');setNotice('Chave PIX copiada.')}catch{setNotice('Chave PIX: 11910326254')}}
