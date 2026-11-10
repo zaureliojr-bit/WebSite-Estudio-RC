@@ -62,3 +62,6 @@
 .email-notification-detail strong{font-size:12px}
 .email-notification-detail p{font-size:11px;line-height:1.5;margin:7px 0 12px;overflow-wrap:anywhere}
 @media(max-width:680px){.push-panel{flex-direction:column;align-items:stretch}.push-panel button{width:100%}.recent-items{padding:0 12px 14px}.recent-items>button .badge{font-size:9px}.all-months-filter{width:100%}}
+
+.push-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+@media(max-width:680px){.push-actions{flex-direction:column;align-items:stretch}}
