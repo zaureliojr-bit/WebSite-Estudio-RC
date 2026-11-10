@@ -1,6 +1,6 @@
 export type Service={id:string;name:string;price:number|null;note:string;decemberAdjustment?:boolean;decemberExtra?:number};
 export type Config={services:Service[];weekly:number[];start:string;end:string;interval:number;overrides:Record<string,{open:boolean;times:string[]}>;adjustment:number;catalogVersion?:number;notificationEmail?:string};
-export type Booking={id:string;name:string;phone?:string;uploadTokenHash?:string;date:string;time:string;serviceId:string;serviceName:string;color:string;notes:string;price:number|null;status:string;paid:number;proof:string|null;created:string;due:string;slot:string|null};
+export type Booking={id:string;name:string;phone?:string;uploadTokenHash?:string;date:string;time:string;serviceId:string;serviceName:string;color:string;notes:string;price:number|null;status:string;paid:number;proof:string|null;created:string;due:string;slot:string|null;imported?:boolean;emailNotification?:{status:string;detail?:string;id?:string|null}};
 export const defaultConfig:Config={catalogVersion:4,weekly:[2,3,4,5,6],start:'08:00',end:'20:00',interval:50,adjustment:10,overrides:Object.fromEntries(['2026-12-13','2026-12-25','2026-12-26','2026-12-27'].map(d=>[d,{open:false,times:[]}])),services:[
 {id:'bio',name:'Bio humano + aplicação · 250 g',price:249.99,note:'5/6 telas • 250 g',decemberAdjustment:false},
 {id:'bio4',name:'Bio humano + aplicação · 4 telas',price:199.99,note:'180/200 g • volume natural',decemberExtra:39.99},
