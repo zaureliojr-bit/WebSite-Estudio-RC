@@ -11,19 +11,18 @@ export default function PushControl(){
  const[supported,setSupported]=useState(false),[enabled,setEnabled]=useState(false),[busy,setBusy]=useState(false),[notice,setNotice]=useState('');
  useEffect(()=>{let alive=true;const capable='serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
  setSupported(capable);
- if(capable)navigator.serviceWorker.ready.then(reg=>reg.pushManager.getSubscription()).then(sub=>{if(alive)setEnabled(!!sub)}).catch(()=>{});
+ if(capable){navigator.serviceWorker.ready.then(reg=>reg.pushManager.getSubscription()).then(sub=>{if(alive)setEnabled(!!sub)}).catch(()=>{});call('push-config').then((v:any)=>{if(alive&&v.enabled)setServerKey(v.publicKey)}).catch(()=>{});}
  return()=>{alive=false}},[]);
  async function enable(){
   setBusy(true);setNotice('');
   try{
    if(!supported)throw Error('Este navegador não suporta notificações push. No iPhone, instale o site pela opção Adicionar à Tela de Início.');
-   const config=await call('push-config') as {enabled:boolean;publicKey:string};
-   if(!config.enabled||!config.publicKey)throw Error('Notificações ainda não configuradas no servidor. Configure as chaves VAPID e o banco de dispositivos.');
+   if(!serverKey)throw Error('Notificações ainda não configuradas no servidor. Configure as chaves VAPID e o banco de dispositivos, depois atualize o painel.');
    const permission=await Notification.requestPermission();
    if(permission!=='granted')throw Error('Permissão negada. Autorize as notificações nas configurações do dispositivo.');
    const registration=await navigator.serviceWorker.ready;
    let subscription=await registration.pushManager.getSubscription();
-   if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:fromBase64Url(config.publicKey) as BufferSource});
+   if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:fromBase64Url(serverKey) as BufferSource});
    await call('push-subscription',{action:'subscribe',subscription:subscription.toJSON()});
    setEnabled(true);setNotice('Este dispositivo receberá avisos de novos agendamentos, mesmo com o painel fechado.');
   }catch(e){setNotice(e instanceof Error?e.message:'Não foi possível ativar as notificações.')}
