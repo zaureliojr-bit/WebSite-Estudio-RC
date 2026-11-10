@@ -51,7 +51,16 @@ async function sendPush(c,b){
  }catch(e){console.error('Studio RC: push indisponível',e instanceof Error?e.message:'unknown');return {status:'failed'};}
 }
 export default async function handler(req,env){try{const u=new URL(req.url),origin=req.headers.get('origin');if(req.method!=='GET'&&origin&&origin!==u.origin)throw new Fault('Origem não autorizada.',403);if(!['GET','POST'].includes(req.method))throw new Fault('Método não permitido.',405);const c=configuration(env),op=u.searchParams.get('op');
-if(op==='login'){if(req.method!=='POST')throw new Fault('Método não permitido.',405);const body=await req.json();if(typeof body.email!=='string'||body.email.trim().toLowerCase()!==c.owner||typeof body.password!=='string'||body.password.length>500)throw new Fault('E-mail ou senha inválidos.',401);const r=await fetch(c.url+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:c.anon,'Content-Type':'application/json'},body:JSON.stringify({email:body.email.trim(),password:body.password}),signal:AbortSignal.timeout(10000)});const d=await r.json();if(!r.ok||!d.access_token||d.user?.email?.toLowerCase()!==c.owner||!d.user?.email_confirmed_at)throw new Fault('E-mail ou senha inválidos. Confira se a conta está confirmada.',401);return json({access_token:d.access_token,expires_in:d.expires_in,emailReady:!!(c.resendKey&&c.emailFrom)});}
+if(op==='login'){if(req.method!=='POST')throw new Fault('Método não permitido.',405);const body=await req.json();if(typeof body.email!=='string'||body.email.trim().toLowerCase()!==c.owner||typeof body.password!=='string'||body.password.length>500)throw new Fault('E-mail ou senha inválidos.',401);const r=await fetch(c.url+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:c.anon,'Content-Type':'application/json'},body:JSON.stringify({email:body.email.trim(),password:body.password}),signal:AbortSignal.timeout(10000)});const d=await r.json();if(!r.ok||!d.access_token||d.user?.email?.toLowerCase()!==c.owner||!d.user?.email_confirmed_at)throw new Fault('E-mail ou senha inválidos. Confira se a conta está confirmada.',401);return json({access_token:d.access_token,refresh_token:d.refresh_token,expires_in:d.expires_in,emailReady:!!(c.resendKey&&c.emailFrom)});}
+if(op==='refresh'){
+ if(req.method!=='POST')throw new Fault('Método não permitido.',405);
+ const body=await req.json(),refresh=body?.refresh_token;
+ if(typeof refresh!=='string'||refresh.length<10||refresh.length>4096)throw new Fault('Sessão expirada. Entre novamente.',401);
+ const r=await fetch(c.url+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:c.anon,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:refresh}),signal:AbortSignal.timeout(10000)});
+ const d=await r.json().catch(()=>({}));
+ if(!r.ok||!d.access_token||!d.refresh_token||d.user?.email?.toLowerCase()!==c.owner||!d.user?.email_confirmed_at)throw new Fault('Sessão expirada. Entre novamente.',401);
+ return json({access_token:d.access_token,refresh_token:d.refresh_token,expires_in:d.expires_in,emailReady:!!(c.resendKey&&c.emailFrom)});
+}
 if(op==='push-config'){if(!await isOwner(req,c))throw new Fault('Acesso restrito.',403);return json({enabled:!!(c.vapidPublic&&c.vapidPrivate),publicKey:c.vapidPublic||''});}
 if(op==='push-test'){
  if(req.method!=='POST'||!await isOwner(req,c))throw new Fault('Acesso restrito.',403);
