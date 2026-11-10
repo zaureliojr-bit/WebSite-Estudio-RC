@@ -35,7 +35,7 @@ Em **Settings → Functions → Compatibility flags**, habilite `nodejs_compat` 
 2. Toque em Compartilhar → Adicionar à Tela de Início.
 3. Abra o ícone instalado na tela inicial e faça login.
 4. Na página Agenda, toque em **Ativar notificações** e autorize.
-5. Faça um agendamento de teste por outro navegador/celular e confira se o aviso aparece mesmo com o painel fechado.
+5. Toque em **Testar aviso** para disparar uma notificação sem criar uma reserva. Depois faça um agendamento de teste por outro navegador/celular e confira se o aviso aparece mesmo com o painel fechado.
 
 No iOS, push só está disponível para web apps instalados na tela inicial (iOS 16.4 ou posterior), com autorização da pessoa usuária. O serviço requer Internet e sistema operacional permitindo as notificações. Ao tocar no aviso, o app abre em `/#admin`.
 
