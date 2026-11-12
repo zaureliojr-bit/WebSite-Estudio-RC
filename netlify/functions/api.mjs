@@ -28,28 +28,13 @@ async function notify(c,b,origin){
  }catch(e){console.error('Studio RC: erro ao solicitar notificação ao Resend',e instanceof Error?e.name:'unknown');return {status:'failed',detail:'Erro de conexão ou timeout ao chamar Resend'};}
 }
 async function sendPush(c,b){
+ // A biblioteca Node "web-push" não pode ser empacotada diretamente em Pages Functions.
+ // Preserve o agendamento e o e-mail enquanto o emissor push compatível com Workers
+ // é implementado separadamente; não tente importar dependências Node aqui.
  if(!c.vapidPublic||!c.vapidPrivate)return {status:'unconfigured'};
- let devices=[];
- try{devices=await sb(c,'/rest/v1/studio_push_subscriptions?select=endpoint,subscription&limit=100');}
- catch{return {status:'database_not_ready'};}
- if(!devices.length)return {status:'no_devices'};
- try{
-  const mod=await import('web-push'),webPush=mod.default||mod;
-  webPush.setVapidDetails(c.vapidSubject||'mailto:'+c.owner,c.vapidPublic,c.vapidPrivate);
-  let delivered=0;
-  for(const device of devices){
-   try{
-    await webPush.sendNotification(device.subscription,JSON.stringify({title:'Novo agendamento · Studio RC',body:`${b.name} · ${b.date.split('-').reverse().join('/')} às ${b.time} · ${b.serviceName}`,url:'/#admin'}),{TTL:3600});
-    delivered++;
-   }catch(error){
-    if(error?.statusCode===404||error?.statusCode===410){
-     await sb(c,'/rest/v1/studio_push_subscriptions?endpoint=eq.'+encodeURIComponent(device.endpoint),{method:'DELETE'}).catch(()=>{});
-    }else console.error('Studio RC: entrega push rejeitada',error?.statusCode||'unknown');
-   }
-  }
-  return {status:delivered?'sent':'failed',delivered};
- }catch(e){console.error('Studio RC: push indisponível',e instanceof Error?e.message:'unknown');return {status:'failed'};}
+ return {status:'unavailable'};
 }
+
 export default async function handler(req,env){try{const u=new URL(req.url),origin=req.headers.get('origin');if(req.method!=='GET'&&origin&&origin!==u.origin)throw new Fault('Origem não autorizada.',403);if(!['GET','POST'].includes(req.method))throw new Fault('Método não permitido.',405);const c=configuration(env),op=u.searchParams.get('op');
 if(op==='login'){if(req.method!=='POST')throw new Fault('Método não permitido.',405);const body=await req.json();if(typeof body.email!=='string'||body.email.trim().toLowerCase()!==c.owner||typeof body.password!=='string'||body.password.length>500)throw new Fault('E-mail ou senha inválidos.',401);const r=await fetch(c.url+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:c.anon,'Content-Type':'application/json'},body:JSON.stringify({email:body.email.trim(),password:body.password}),signal:AbortSignal.timeout(10000)});const d=await r.json();if(!r.ok||!d.access_token||d.user?.email?.toLowerCase()!==c.owner||!d.user?.email_confirmed_at)throw new Fault('E-mail ou senha inválidos. Confira se a conta está confirmada.',401);return json({access_token:d.access_token,refresh_token:d.refresh_token,expires_in:d.expires_in,emailReady:!!(c.resendKey&&c.emailFrom)});}
 if(op==='refresh'){
