@@ -1,5 +1,0 @@
-# Cloudflare Pages - Studio Raquel Candida
-name = "website-estudio-rc"
-pages_build_output_dir = "./public"
-compatibility_date = "2026-11-11"
-compatibility_flags = ["nodejs_compat"]
