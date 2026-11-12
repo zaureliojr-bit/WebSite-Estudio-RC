@@ -6,7 +6,7 @@ import {CalendarDays,CalendarCheck,Scissors,Settings2,ArrowUpRight,ArrowRight,Ch
 import {defaultConfig,timesFor,generatedTimes,money,priceFor,dateLabel,rules,validPhone,whatsappLink,dayTotals,type Config,type Booking} from './studio';
 const labels:Record<string,string>={pending:'Aguardando sinal',review:'Conferir comprovante',confirmed:'Confirmado',cancelled:'Cancelado'};
 const weekdays=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-const todayInStudio=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+const todayInStudio=()=>new Date().toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'});
 const initialDate=todayInStudio();
 function inputDate(d:Date){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 export default function Home(){
