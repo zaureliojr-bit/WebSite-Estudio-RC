@@ -28,11 +28,30 @@ async function notify(c,b,origin){
  }catch(e){console.error('Studio RC: erro ao solicitar notificação ao Resend',e instanceof Error?e.name:'unknown');return {status:'failed',detail:'Erro de conexão ou timeout ao chamar Resend'};}
 }
 async function sendPush(c,b){
- // A biblioteca Node "web-push" não pode ser empacotada diretamente em Pages Functions.
- // Preserve o agendamento e o e-mail enquanto o emissor push compatível com Workers
- // é implementado separadamente; não tente importar dependências Node aqui.
  if(!c.vapidPublic||!c.vapidPrivate)return {status:'unconfigured'};
- return {status:'unavailable'};
+ let devices=[];
+ try{devices=await sb(c,'/rest/v1/studio_push_subscriptions?select=endpoint,subscription&limit=100')}
+ catch{return {status:'database_not_ready'};}
+ if(!devices?.length)return {status:'no_devices'};
+ try{
+  // Web Crypto nativo das Pages Functions: sem módulos Node (http/https/crypto).
+  const {buildPushPayload}=await import('@block65/webcrypto-web-push');
+  const vapid={subject:c.vapidSubject||'mailto:'+c.owner,publicKey:c.vapidPublic,privateKey:c.vapidPrivate};
+  const message=JSON.stringify({title:'Novo agendamento · Studio RC',body:`${b.name} · ${b.date.split('-').reverse().join('/')} às ${b.time} · ${b.serviceName}`,url:'/#admin'});
+  let delivered=0,failed=0;
+  for(const device of devices){
+   try{
+    const request=await buildPushPayload({data:message,options:{ttl:3600}},device.subscription,vapid);
+    const response=await fetch(device.endpoint,request);
+    if(response.ok){delivered++;continue}
+    failed++;
+    if(response.status===404||response.status===410){
+     await sb(c,'/rest/v1/studio_push_subscriptions?endpoint=eq.'+encodeURIComponent(device.endpoint),{method:'DELETE'}).catch(()=>{});
+    }else console.error('Studio RC: push HTTP',response.status);
+   }catch(e){failed++;console.error('Studio RC: falha no dispositivo push',e instanceof Error?e.name:'unknown')}
+  }
+  return {status:delivered?'sent':'failed',delivered,failed};
+ }catch(e){console.error('Studio RC: emissor push indisponível',e instanceof Error?e.name:'unknown');return {status:'failed'};}
 }
 
 export default async function handler(req,env){try{const u=new URL(req.url),origin=req.headers.get('origin');if(req.method!=='GET'&&origin&&origin!==u.origin)throw new Fault('Origem não autorizada.',403);if(!['GET','POST'].includes(req.method))throw new Fault('Método não permitido.',405);const c=configuration(env),op=u.searchParams.get('op');
