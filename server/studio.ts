@@ -1,6 +1,6 @@
 export type Service={id:string;name:string;price:number|null;note:string;decemberAdjustment?:boolean;decemberExtra?:number};
 export type Config={services:Service[];weekly:number[];start:string;end:string;interval:number;overrides:Record<string,{open:boolean;times:string[]}>;adjustment:number;catalogVersion?:number;notificationEmail?:string};
-export type Booking={id:string;name:string;phone?:string;uploadTokenHash?:string;date:string;time:string;serviceId:string;serviceName:string;color:string;notes:string;price:number|null;status:string;paid:number;proof:string|null;created:string;due:string;slot:string|null};
+export type Booking={id:string;name:string;phone?:string;uploadTokenHash?:string;date:string;time:string;serviceId:string;serviceIds?:string[];serviceName:string;color:string;notes:string;price:number|null;status:string;paid:number;proof:string|null;created:string;due:string;slot:string|null};
 export const defaultConfig:Config={catalogVersion:4,weekly:[2,3,4,5,6],start:'08:00',end:'20:00',interval:50,adjustment:10,overrides:Object.fromEntries(['2026-12-13','2026-12-25','2026-12-26','2026-12-27'].map(d=>[d,{open:false,times:[]}])),services:[
 {id:'bio',name:'Bio humano + aplicação · 250 g',price:249.99,note:'5/6 telas • 250 g',decemberAdjustment:false},
 {id:'bio4',name:'Bio humano + aplicação · 4 telas',price:199.99,note:'180/200 g • volume natural',decemberExtra:39.99},
@@ -19,7 +19,27 @@ export const defaultConfig:Config={catalogVersion:4,weekly:[2,3,4,5,6],start:'08
 export function generatedTimes(c:Config){const toMin=(s:string)=>Number(s.slice(0,2))*60+Number(s.slice(3));const result:string[]=[];for(let i=toMin(c.start);i+c.interval<=toMin(c.end);i+=c.interval)result.push(`${Math.floor(i/60)}`.padStart(2,'0')+':'+`${i%60}`.padStart(2,'0'));return result;}
 export function timesFor(c:Config,date:string){if(c.overrides[date])return c.overrides[date].open?c.overrides[date].times:[];return c.weekly.includes(new Date(date+'T12:00:00').getDay())?generatedTimes(c):[];}
 export const money=(v:number|null)=>v===null?'Sob avaliação':new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v);
-export const priceFor=(s:Service,c:Config,date:string)=>s.price===null?null:Math.round((s.price+(date.slice(5,7)==='12'&&s.decemberAdjustment!==false?(s.decemberExtra??c.adjustment):0))*100)/100;
+export const priceFor=(s:Service,c:Pick<Config,"adjustment">,date:string)=>s.price===null?null:Math.round((s.price+(date.slice(5,7)==='12'&&s.decemberAdjustment!==false?(s.decemberExtra??c.adjustment):0))*100)/100;
+
+export function bookingServices(ids: unknown, config: Pick<Config, 'services' | 'adjustment'>, date: string) {
+  if (!Array.isArray(ids) || !ids.length || ids.length > config.services.length ||
+      new Set(ids).size !== ids.length) return null;
+
+  const services = ids.map(id => config.services.find(service => service.id === id));
+  if (services.some(service => !service)) return null;
+
+  const selected = services as Service[];
+  const prices = selected.map(service => priceFor(service, config, date));
+  return {
+    serviceId: selected[0].id,
+    serviceIds: selected.map(service => service.id),
+    serviceName: selected.map(service => service.name).join(' + '),
+    price: prices.some(price => price === null)
+      ? null
+      : prices.reduce<number>((sum, price) => sum + Math.round((price ?? 0) * 100), 0) / 100,
+  };
+}
+
 export const dateLabel=(d:string)=>new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{day:'numeric',month:'long'});
 export const rules=[['Reajuste em dezembro','Em dezembro, o bio humano de 4 telas recebe R$39,99 de acréscimo, totalizando R$239,98. O bio humano de 250 g mantém R$249,99 com aplicação. Os demais serviços seguem o reajuste de R$10,00.'],['Sinal para reservar','Pague R$40,00 em até 7 dias após o agendamento e sempre antes do atendimento. Envie o comprovante para análise e confirmação.'],['Tolerância de 15 minutos','Organize sua chegada para aproveitar seu horário com tranquilidade.'],['Reagendamento','Uma nova data exige o pagamento de um novo sinal.'],['Acompanhantes','Não é permitido levar acompanhante, salvo em caso de necessidade.'],['Procedimentos combinados','Informe previamente se deseja remoção, progressiva, botox, tintura ou outros serviços junto da colocação.']];
 

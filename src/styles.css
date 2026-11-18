@@ -89,3 +89,7 @@
  .calendar .calendar-days .calday strong{font-size:13px}
  .calendar .calendar-days .calday small{font-size:7px;overflow-wrap:anywhere}
 }
+
+.procedure-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:6px 10px;margin-bottom:12px}
+.procedure-row .client-label,.procedure-row .secondary{margin:0}
+.procedure-note{grid-column:1/-1}
