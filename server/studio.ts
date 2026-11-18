@@ -22,8 +22,7 @@ export const money=(v:number|null)=>v===null?'Sob avaliação':new Intl.NumberFo
 export const priceFor=(s:Service,c:Pick<Config,"adjustment">,date:string)=>s.price===null?null:Math.round((s.price+(date.slice(5,7)==='12'&&s.decemberAdjustment!==false?(s.decemberExtra??c.adjustment):0))*100)/100;
 
 export function bookingServices(ids: unknown, config: Pick<Config, 'services' | 'adjustment'>, date: string) {
-  if (!Array.isArray(ids) || !ids.length || ids.length > config.services.length ||
-      new Set(ids).size !== ids.length) return null;
+  if (!Array.isArray(ids) || !ids.length) return null;
 
   const services = ids.map(id => config.services.find(service => service.id === id));
   if (services.some(service => !service)) return null;
