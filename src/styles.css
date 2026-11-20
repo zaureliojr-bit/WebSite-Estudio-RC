@@ -93,3 +93,25 @@
 .procedure-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:6px 10px;margin-bottom:12px}
 .procedure-row .client-label,.procedure-row .secondary{margin:0}
 .procedure-note{grid-column:1/-1}
+
+.studio-gallery{margin:40px 0;scroll-margin-top:90px}
+.gallery-colors{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0}
+.gallery-colors button{border:1px solid #e8d3dc;border-radius:24px;background:white;color:#714454;padding:10px 16px;font:inherit;font-size:14px;cursor:pointer}
+.gallery-colors button[aria-pressed=true]{background:#714454;color:#fff;border-color:#714454}
+.gallery-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.gallery-grid article{border:1px solid #ecdce2;border-radius:14px;overflow:hidden;background:#fff;min-width:0}
+.gallery-image{display:block;border:0;padding:0;background:#f8edf1;width:100%;cursor:zoom-in}
+.gallery-image img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover}
+.gallery-caption{padding:14px;display:flex;flex-direction:column;gap:7px;color:#714454;overflow-wrap:anywhere}
+.gallery-caption span{font-size:14px}
+.gallery-pagination{display:flex;justify-content:center;align-items:center;gap:16px;margin:24px 0}
+.gallery-empty{border:1px dashed #e8d3dc;border-radius:14px;padding:24px;text-align:center}
+.gallery-upload{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;padding:22px}
+.gallery-upload label{display:flex;flex-direction:column;gap:7px;min-width:0}
+.gallery-upload input,.gallery-upload select{width:100%;min-width:0}
+.gallery-upload button{align-self:end}
+.gallery-upload p{grid-column:1/-1;margin:0}
+.gallery-dialog{border:0;border-radius:16px;padding:15px;max-width:min(94vw,800px);max-height:94vh;text-align:center;background:#fff;color:#714454}
+.gallery-dialog::backdrop{background:rgba(24,12,19,.78)}
+.gallery-dialog img{display:block;max-width:100%;max-height:75vh;object-fit:contain;margin:12px auto}
+@media(max-width:700px){.gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.gallery-upload{grid-template-columns:1fr}.gallery-colors{flex-wrap:nowrap;overflow-x:auto;padding:3px 0 8px}.gallery-colors button{white-space:nowrap}.gallery-caption{padding:10px}.gallery-pagination{gap:10px}}

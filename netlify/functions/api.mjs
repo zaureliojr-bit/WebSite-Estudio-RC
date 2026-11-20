@@ -1,4 +1,5 @@
 import {randomUUID,createHash} from 'node:crypto';
+import {galleryColors} from '../../server/gallery.ts';
 import {defaultConfig,upgradeConfig,timesFor,bookingServices,validPhone,normalizedPhone,whatsappLink,money} from '../../server/studio.ts';
 class Fault extends Error{constructor(message,status=400){super(message);this.status=status;}}
 const json=(v,status=200)=>Response.json(v,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
@@ -36,6 +37,32 @@ async function sendPush(c,b){
 }
 
 export default async function handler(req,env){try{const u=new URL(req.url),origin=req.headers.get('origin');if(req.method!=='GET'&&origin&&origin!==u.origin)throw new Fault('Origem não autorizada.',403);if(!['GET','POST'].includes(req.method))throw new Fault('Método não permitido.',405);const c=configuration(env),op=u.searchParams.get('op');
+if(op==='gallery'){
+  const endpoint='/rest/v1/studio_settings';
+  if(req.method==='GET'){
+    const color=u.searchParams.get('color')||'',page=Number(u.searchParams.get('page')||1);
+    if((color&&!galleryColors.includes(color))||!Number.isSafeInteger(page)||page<1||page>100000)throw new Fault('Filtro inválido.');
+    const params=new URLSearchParams({select:'data',id:'like.gallery-*',order:'data->>created.desc,id.desc',offset:String((page-1)*6),limit:'7'});
+    if(color)params.set('data->>color','eq.'+color);
+    const rows=await sb(c,endpoint+'?'+params.toString());
+    return json({photos:rows.slice(0,6).map(row=>row.data),more:rows.length>6});
+  }
+  if(!await isOwner(req,c))throw new Fault('Acesso restrito à proprietária.',403);
+  const body=await req.json();
+  if(body.action==='add'){
+    if(!galleryColors.includes(body.color)||typeof body.caption!=='string'||body.caption.length>120||typeof body.image!=='string'||body.image.length>400000||!/^data:image\/jpeg;base64,\/9j\/[A-Za-z0-9+/]+={0,2}$/.test(body.image))throw new Fault('Confira a foto, a cor e a legenda.');
+    const id='gallery-'+randomUUID();
+    const data={id,color:body.color,caption:body.caption.trim(),image:body.image,created:new Date().toISOString()};
+    await sb(c,endpoint,{method:'POST',data:{id,data}});
+    return json({ok:true});
+  }
+  if(body.action==='remove'){
+    if(typeof body.id!=='string'||!/^gallery-[a-f0-9-]{36}$/.test(body.id))throw new Fault('Foto inválida.');
+    await sb(c,endpoint+'?id=eq.'+body.id,{method:'DELETE'});
+    return json({ok:true});
+  }
+  throw new Fault('Ação inválida.');
+}
 if(op==='login'){if(req.method!=='POST')throw new Fault('Método não permitido.',405);const body=await req.json();if(typeof body.email!=='string'||body.email.trim().toLowerCase()!==c.owner||typeof body.password!=='string'||body.password.length>500)throw new Fault('E-mail ou senha inválidos.',401);const r=await fetch(c.url+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:c.anon,'Content-Type':'application/json'},body:JSON.stringify({email:body.email.trim(),password:body.password}),signal:AbortSignal.timeout(10000)});const d=await r.json();if(!r.ok||!d.access_token||d.user?.email?.toLowerCase()!==c.owner||!d.user?.email_confirmed_at)throw new Fault('E-mail ou senha inválidos. Confira se a conta está confirmada.',401);return json({access_token:d.access_token,refresh_token:d.refresh_token,expires_in:d.expires_in,emailReady:!!(c.resendKey&&c.emailFrom)});}
 if(op==='refresh'){
  if(req.method!=='POST')throw new Fault('Método não permitido.',405);
